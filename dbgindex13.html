@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mariham Consultancy</title>
+  <style>
+    nav { background-color: rgba(226, 43, 134, 0.096);background-image: url('image4.html.jpg'); padding: 20px; }
+    nav ul { list-style-type: none; gap: 30px; display: flex; }
+    nav li { margin: 0 15px; }
+    nav a { color: black; text-decoration: none; font-weight: bold; cursor: pointer; }
+    nav a:hover { color: purple; }
+    section { display: none; } /* Hide all sections by default */
+    section.active { display: block; }/* Show the active section */
+    .read-more-btn { cursor: pointer; color:black text-decoration:none;display:inline-block;border-radius:10px;padding:10px 15px;border:1px solid black}
+    .read-more-btn:hover { color: purple; } /*border:1px solid black makes the seen in box*/
+
+     /* Styling for the comment section */
+    #nameBox, #commentBox { width: 300px; margin-bottom: 10px; } /*short hand for both*/
+    #commentBox { height: 80px; } /*# one unique name , .for class name*/
+    .comment { background: #f9f9f9; padding: 8px; margin-bottom: 10px; border-radius: 4px; }
+    .actions button { margin-right: 5px; cursor: pointer; }   /*styling the button in class actions*/  
+    .reply{ margin-left: 30px; background: #eee; padding: 6px; border-radius: 4px; margin-top: 5px; }
+    .replyBox { margin-top: 5px; display:block; }
+    .timestamp { font-size: 0.8em; color: gray; margin-top: 4px;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mariham Consultancy</h1>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <ul>
+      <li><a onclick="showSection('home')">Home</a></li>
+      <li><a onclick="showSection('about')">About us</a></li>
+      <li><a onclick="showSection('contact')">Contact</a></li>
+      <li><a onclick="showSection('services')">Services</a></li>
+      <li><a onclick="showSection('signup')">Sign-up</a></li>
+      <li><a onclick="showSection('blog')">Blog</a></li>
+      <li><a onclick="showSection('comments')">Comments</a></li>
+    </ul>
+  </nav>
+
+  <!-- Sections -->
+  <section id="home" class="active"> <!-- Home section is active by default -->
+    <h1>Welcome to Mariham Consultancy</h1>
+    <p>We are here to serve you.</p>
+    <details>
+      <summary class="read-more-btn">Read more...</summary>
+      <p>We provide a wide range of consultancy services to help your business grow and succeed in today's competitive market.</p>
+  </section>
+
+  <!-- Comments Section -->
+  <section id="comments">
+    <h2>Leave a Comment</h2>
+    <input type="text" id="nameBox" placeholder="Your name (optional)"><br>
+    <textarea id="commentBox" placeholder="Write your comment here..."></textarea><br>
+    <button onclick="submitComment()">Submit</button>
+    <button onclick="clearComments()">Clear Comments</button>
+
+    <div id="commentList">
+      <h3>Comments:</h3>
+    </div>
+  </section>
+
+  <script>
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('section');
+      sections.forEach(section => section.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+    }
+
+    // Load comments from localStorage
+    window.onload = function() {
+      const savedComments = JSON.parse(localStorage.getItem('comments')) || [];
+      savedComments.forEach(c => addCommentToList(c.name, c.text, c.likes, c.dislikes, c.replies, c.timestamp));
+    };
+
+    function submitComment() {
+      const nameBox = document.getElementById('nameBox');
+      const commentBox = document.getElementById('commentBox');
+      const name = nameBox.value.trim() || "Anonymous";
+      const commentText = commentBox.value.trim();
+      const timestamp = new Date().toLocaleString();
+
+      if (commentText !== '') {
+        addCommentToList(name, commentText, 0, 0, [], timestamp);
+
+        const savedComments = JSON.parse(localStorage.getItem('comments')) || [];
+        savedComments.push({ name, text: commentText, likes: 0, dislikes: 0, replies: [], timestamp });
+        localStorage.setItem('comments', JSON.stringify(savedComments));
+
+        nameBox.value = "";
+        commentBox.value = "";
+      } else {
+        alert("Please enter a comment before submitting.");
+      }
+    }
+
+    function addCommentToList(name, text, likes, dislikes, replies, timestamp) {
+      const newComment = document.createElement('div');
+      newComment.className = "comment";
+
+      const content = document.createElement('p');
+      content.innerHTML = `<strong>${name}:</strong> ${text}`;
+      newComment.appendChild(content);
+
+      const time = document.createElement('div');
+      time.className = "timestamp";
+      time.textContent = `Posted on ${timestamp}`;
+      newComment.appendChild(time);
+
+      const actions = document.createElement('div');
+      actions.className = "actions";
+
+      const likeBtn = document.createElement('button');
+      likeBtn.textContent = `👍 ${likes}`;
+      likeBtn.onclick = () => { likes++; likeBtn.textContent = `👍 ${likes}`; updateLocalStorage(); };
+
+      const dislikeBtn = document.createElement('button');
+      dislikeBtn.textContent = `👎 ${dislikes}`;
+      dislikeBtn.onclick = () => { dislikes++; dislikeBtn.textContent = `👎 ${dislikes}`; updateLocalStorage(); };
+
+      const replyBtn = document.createElement('button');
+      replyBtn.textContent = "Reply";
+      replyBtn.onclick = () => {
+        const replyName = document.createElement('input');
+        replyName.type = "text";
+        replyName.placeholder = "Your name (optional)";
+        replyName.className = "replyBox";
+
+        const replyBox = document.createElement('textarea');
+        replyBox.className = "replyBox";
+        replyBox.placeholder = "Write a reply...";
+
+        const sendReply = document.createElement('button');
+        sendReply.textContent = "Submit Reply";
+        sendReply.onclick = () => {
+          if (replyBox.value.trim() !== "") {
+            const replyText = replyBox.value.trim();
+            const replyAuthor = replyName.value.trim() || "Anonymous";
+            const replyTimestamp = new Date().toLocaleString();
+
+            const replyDiv = document.createElement('div');
+            replyDiv.className = "reply";
+            replyDiv.innerHTML = `<strong>${replyAuthor}:</strong> ${replyText}<div class="timestamp">Posted on ${replyTimestamp}</div>`;
+            newComment.appendChild(replyDiv);
+
+            replies.push({ name: replyAuthor, text: replyText, timestamp: replyTimestamp });
+            updateLocalStorage();
+
+            replyBox.remove();
+            replyName.remove();
+            sendReply.remove();
+          }
+        };
+
+        newComment.appendChild(replyName);
+        newComment.appendChild(replyBox);
+        newComment.appendChild(sendReply);
+      };
+
+      actions.appendChild(likeBtn);
+      actions.appendChild(dislikeBtn);
+      actions.appendChild(replyBtn);
+      newComment.appendChild(actions);
+
+      // Show existing replies
+      replies.forEach(r => {
+        const replyDiv = document.createElement('div');
+        replyDiv.className = "reply";
+        replyDiv.innerHTML = `<strong>${r.name}:</strong> ${r.text}<div class="timestamp">Posted on ${r.timestamp}</div>`;
+        newComment.appendChild(replyDiv);
+      });
+
+      document.getElementById('commentList').appendChild(newComment);
+
+      function updateLocalStorage() {
+        const allComments = [];
+        document.querySelectorAll('#commentList .comment').forEach(c => {
+          const strong = c.querySelector('strong');
+          if (strong) {
+            const name = strong.textContent.replace(':', '');
+            const text = c.querySelector('p').textContent.replace(`${strong.textContent} `, '');
+            const likeCount = parseInt(c.querySelector('.actions button:nth-child(1)').textContent.match(/\d+/)[0]);
+            const dislikeCount = parseInt(c.querySelector('.actions button:nth-child(2)').textContent.match(/\d+/)[0]);
+            const timestamp = c.querySelector('.timestamp').textContent.replace('Posted on ', '');
+            const replies = [];
+            c.querySelectorAll('.reply').forEach(r => {
+              const rStrong = r.querySelector('strong');
+              const rName = rStrong ? rStrong.textContent.replace(':', '') : "Anonymous";
+              const rText = r.textContent.replace(`${rStrong.textContent} `, '').replace(/Posted on.*/, '').trim();
+              const rTimestamp = r.querySelector('.timestamp').textContent.replace('Posted on ', '');
+              replies.push({ name: rName, text: rText, timestamp: rTimestamp });
+            });
+            allComments.push({ name, text, likes: likeCount, dislikes: dislikeCount, replies, timestamp });
+          }
+        });
+        localStorage.setItem('comments', JSON.stringify(allComments));
+      }
+    }
+
+    function clearComments() {
+      localStorage.removeItem('comments');
+      document.getElementById('commentList').innerHTML = "<h3>Comments:</h3>";
+    }
+  </script>
+
+  <footer>
+    <p>Copyright ©2024 Mariham Consultancy. All rights reserved.</p>
